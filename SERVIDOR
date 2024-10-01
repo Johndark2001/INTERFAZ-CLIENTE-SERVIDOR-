@@ -1,1 +1,54 @@
 
+import socket
+import tkinter as tk
+from tkinter.scrolledtext import ScrolledText
+
+def iniciar_servidor():
+    servidor_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    
+    servidor_socket.bind(('localhost', 12345))
+    
+    servidor_socket.listen(5)
+    agregar_mensaje("Servidor escuchando en el puerto 12345...")
+    
+    while True:
+        cliente_socket, direccion_cliente = servidor_socket.accept()
+        agregar_mensaje(f"Conexión establecida con {direccion_cliente}")
+        
+        cliente_socket.send("¿Cuál es tu nombre?".encode('utf-8'))
+        nombre = cliente_socket.recv(1024).decode('utf-8')
+        agregar_mensaje(f"Nombre recibido: {nombre}")
+        
+        cliente_socket.send("¿Cuál es tu edad?".encode('utf-8'))
+        edad = cliente_socket.recv(1024).decode('utf-8')
+        agregar_mensaje(f"Edad recibida: {edad}")
+        
+        cliente_socket.send("¿Cuál es tu correo electrónico?".encode('utf-8'))
+        correo = cliente_socket.recv(1024).decode('utf-8')
+        agregar_mensaje(f"Correo recibido: {correo}")
+        
+        confirmacion = f"Gracias {nombre}, de {edad} años. Tu correo {correo} ha sido registrado."
+        cliente_socket.send(confirmacion.encode('utf-8'))
+        agregar_mensaje("Confirmación enviada al cliente.")
+        
+        cliente_socket.close()
+
+def agregar_mensaje(mensaje):
+    text_area.config(state=tk.NORMAL)
+    text_area.insert(tk.END, mensaje + "\n")
+    text_area.config(state=tk.DISABLED)
+
+root = tk.Tk()
+root.title("Servidor")
+
+text_area = ScrolledText(root, wrap=tk.WORD, state=tk.DISABLED, width=50, height=20)
+text_area.pack(padx=10, pady=10)
+
+import threading
+servidor_thread = threading.Thread(target=iniciar_servidor)
+servidor_thread.daemon = True
+servidor_thread.start()
+
+root.mainloop()
+
+
